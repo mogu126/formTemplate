@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>表单验证</title>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        body,html{
+            width: 100%;
+            height: 100%;
+        }
+        .contain{
+            margin: 100px 200px;
+        }
+        b.group_t1,input.group_input,p.group_content{
+            float: left;
+        }
+        b.group_t1,p.group_content{
+            line-height:33px ;
+        }
+        b.group_t1{
+            display: inline-block;
+            width: 75px;
+            margin-right: 10px;
+        }
+        input.group_input{
+            padding: 8px 5px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            width: 200px;
+        }
+        .group_item{
+            overflow: hidden;
+            margin: 5px auto;
+        }
+        p.group_content{
+            margin-left: 10px;
+            font-size: 12px;
+            color: #666;
+            display: none;
+        }
+        .group_tip{
+            margin-left: 90px;
+            height: 15px;
+            font-size: 12px;
+            color: #666;
+            opacity:0;
+        }
+        em{
+            display: inline-block;
+            width: 40px;
+            height: 15px;
+            line-height: 15px;
+            font-size: 12px;
+            background-color: #f0f;
+            text-align: center;
+            margin-right: 2px;
+        }
+        .active{
+            background-color:#f00;
+        }
+    </style>
+</head>
+<body>
+    <div class="contain">
+        <div class="group">
+            <div class="group_item"><b class="group_t1">用 户 名:</b><input class="group_input" type="text" placeholder="请输入用户名"/><p class="group_content"></p></div>
+            <div class="group_tip" id="count"></div>
+        </div>
+        <div class="group">
+            <div class="group_item"><b class="group_t1">密&nbsp;&nbsp;码:</b><input class="group_input" type="password" placeholder="请输入密码"/><p class="group_content"></p></div>
+            <div class="group_tip" id="em">
+                <em>弱</em><em>中</em><em>强</em>
+            </div>
+        </div>
+        <div class="group">
+            <div class="group_item"><b class="group_t1">确认密码:</b><input class="group_input" disabled type="password" placeholder="请再次输入密码"/><p class="group_content"></p></div>
+        </div>
+    </div>
+    <script>
+        (function(){
+            function getLength(str){
+               return str.replace(/[^\x00-xff]/g,'xx').length;//匹配汉字或全角
+            };
+            function findStr(str,n){
+                 var tmp=0;
+                for(var i=0;i<str.length;i++){
+                    if(str.charAt(i)==n){
+                        tmp++;
+                    }
+                }
+                return tmp;
+            };
+            var input=document.getElementsByTagName('input');
+            var userName=input[0];
+            var userPsw=input[1];
+            var repPsw=input[2];
+            var p=document.getElementsByTagName('p');
+            var ap1=p[0];
+            var ap2=p[1];
+            var ap3=p[2];
+            var count=document.getElementById('count');
+            var aEm=document.getElementsByTagName('em');
+            var em=document.getElementById('em');
+            var name_length=0;
+
+            userName.onfocus=function(){
+                ap1.style.display='block';
+                ap1.innerHTML='5-25个字符，一个汉字为两个字符，推荐使用中文会员名。';
+            };
+            userName.onkeyup=function(){
+                count.style.opacity='1';
+                name_length=getLength(this.value);
+                if(name_length==0){
+                    count.style.opacity='0';
+                }else{
+                    count.innerHTML=name_length+'个字符';
+                }
+            };
+            userName.onblur=function(){
+                //含有非法字符
+                var re=/[^\w\u4e00-\u9f5a]/g;
+                if(re.test(this.value)){
+                    ap1.innerHTML='含有非法字符';
+                }else if(this.value==''){
+                    ap1.innerHTML='不能为空';
+                }else if(name_length>25){
+                    ap1.innerHTML='不能超过25个字符';
+                }else if(name_length<5){
+                    ap1.innerHTML='不能小于5个字符';
+                }else{
+                    ap1.innerHTML='OK';
+                }
+            };
+            userPsw.onfocus=function(){
+                ap2.style.display='block';
+                ap2.innerHTML='6-16个字符，请使用字母加数字或符号的组合密码，不能单独使用字母、数字或符号。';
+            };
+            userPsw.onkeyup=function(){
+                em.style.opacity='1';
+                if(this.value.length>0&&this.value.length<=5){
+                    aEm[1].className='';
+                    aEm[0].className='active';
+                    repPsw.setAttribute('disabled','');
+                }else if(this.value.length>10){
+                    aEm[2].className='active';
+                }else if(this.value.length>5){
+                    aEm[2].className=' ';
+                    aEm[1].className='active';
+                    repPsw.removeAttribute('disabled');
+                }else{
+                    aEm[0].className='';
+                    repPsw.setAttribute('disabled','');
+                }
+            };
+            userPsw.onblur=function(){
+                var re_n=/[^\d]/g;
+                var re_z=/[^a-zA-Z]/g;
+                var self=this;
+                var m=findStr(self.value,self.value[0]);
+                if(this.value==''){
+                    ap2.innerHTML='不能为空';
+                }else if(m==this.value.length){
+                    ap2.innerHTML='不能用相同字符';
+                }else if(this.value.length>16||this.value.length<6){
+                    ap2.innerHTML='长度应为6-16个字符';
+                }else if(!re_n.test(this.value)||!re_z.test(this.value)){
+                    ap2.innerHTML='不能全为数字或字母';
+                }else{
+                    ap2.innerHTML='OK';
+                }
+            };
+            repPsw.onblur=function(){
+                var  psw= userPsw.value;
+                ap3.style.display='block';
+                if(this.value!=psw){
+                    ap3.innerHTML='两次输入的密码不一样';
+                }else{
+                    ap3.innerHTML='OK';
+                }
+            };
+        })();
+    </script>
+</body>
+</html>
